@@ -120,27 +120,21 @@ st.markdown("""
     color: #E2E8F0 !important;
     font-weight: 500 !important;
     font-size: 0.85rem !important;
-    padding: 0.6rem 1.2rem !important;
+    padding: 0.6rem 0 !important;
     transition: all 0.3s ease !important;
     white-space: nowrap !important;
     min-height: 44px !important;
     width: 100% !important;
-}
-
-.stButton > button > div {
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    width: 100% !important;
-}
-
-.stButton > button p,
-.stButton > button span,
-.stButton > button div {
     text-align: center !important;
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
+}
+
+.stButton > button * {
+    text-align: center !important;
+    justify-content: center !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
 }
 
 .stButton > button:hover {
