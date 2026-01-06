@@ -1,6 +1,6 @@
 # ═══════════════════════════════════════════════════════════════════════════════
 # ✈️ FLIGHT DELAY DOMINO EFFECT - EXECUTIVE DASHBOARD
-# Final Production Version - All Issues Fixed
+# Final Production Version - All Issues Fixed + Waterfall Chart
 # ═══════════════════════════════════════════════════════════════════════════════
 
 import streamlit as st
@@ -71,7 +71,7 @@ st.markdown("""
     }
     
     .main .block-container {
-        padding: 0.8rem 2rem 2rem 2rem;
+        padding: 1rem 2rem 2rem 2rem;
         max-width: 100%;
     }
     
@@ -84,7 +84,7 @@ st.markdown("""
         backdrop-filter: blur(20px);
         border-bottom: 1px solid rgba(139, 92, 246, 0.3);
         padding: 1rem 2rem;
-        margin: -0.8rem -2rem 1.5rem -2rem;
+        margin: -1rem -2rem 1.5rem -2rem;
         display: flex;
         align-items: center;
         gap: 20px;
@@ -112,18 +112,18 @@ st.markdown("""
         font-weight: 600;
     }
     
-    /* ═══════════════ NAVIGATION BUTTONS - ALL IDENTICAL ═══════════════ */
+    /* ═══════════════ NAVIGATION BUTTONS ═══════════════ */
     .stButton > button {
         background: linear-gradient(145deg, rgba(26, 26, 46, 0.9) 0%, rgba(15, 15, 26, 0.95) 100%) !important;
         border: 1px solid rgba(139, 92, 246, 0.3) !important;
-        border-radius: 10px !important;
+        border-radius: 12px !important;
         color: #E2E8F0 !important;
         font-weight: 500 !important;
         font-size: 0.85rem !important;
-        padding: 0.5rem 0.8rem !important;
+        padding: 0.6rem 1.2rem !important;
         transition: all 0.3s ease !important;
-        width: 100% !important;
         white-space: nowrap !important;
+        min-height: 44px !important;
     }
     
     .stButton > button:hover {
@@ -271,7 +271,7 @@ st.markdown("""
         margin: 0;
     }
     
-    /* ═══════════════ CHART EXPLAINER - VISIBLE ═══════════════ */
+    /* ═══════════════ CHART EXPLAINER ═══════════════ */
     .chart-explainer {
         font-size: 0.95rem;
         color: #CBD5E1;
@@ -483,7 +483,7 @@ MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
 MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
-# Color palette for charts
+# Color palette
 COLORS = {
     'purple': '#8B5CF6',
     'violet': '#A78BFA',
@@ -497,13 +497,10 @@ COLORS = {
     'red': '#EF4444',
     'text': '#E2E8F0',
     'muted': '#94A3B8',
-    'grid': 'rgba(139, 92, 246, 0.1)',
-    'success': '#10B981',
-    'warning': '#F59E0B',
-    'danger': '#EF4444'
+    'grid': 'rgba(139, 92, 246, 0.1)'
 }
 
-# Gulf carriers list (for proper filtering)
+# Gulf carriers list
 GULF_CARRIERS = ['Emirates', 'Qatar Airways', 'Etihad Airways', 'Gulf Air', 'Oman Air', 
                  'Kuwait Airways', 'Saudia', 'flydubai', 'Air Arabia']
 
@@ -532,17 +529,19 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Navigation - ALL BUTTONS IDENTICAL
-nav_cols = st.columns(8)
-pages = ["Overview", "Analytics", "Domino Effect", "Economics", 
-         "AI Predictor", "Simulator", "Regional", "Summary"]
-
+# Navigation
 if 'current_page' not in st.session_state:
     st.session_state.current_page = "Overview"
 
+pages = ["Overview", "Analytics", "Domino Effect", "Economics", 
+         "AI Predictor", "Simulator", "Regional", "Summary"]
+
+nav_cols = st.columns(8)
 for i, page in enumerate(pages):
-    if nav_cols[i].button(page, key=f"nav_{i}"):
-        st.session_state.current_page = page
+    with nav_cols[i]:
+        if st.button(page, key=f"nav_{page}", use_container_width=True):
+            st.session_state.current_page = page
+            st.rerun()
 
 current_page = st.session_state.current_page
 
@@ -833,8 +832,7 @@ elif current_page == "Analytics":
             <div class="insight-title">💡 Airline Performance Insight</div>
             <div class="insight-text">
                 <span class="insight-stat">{best_airline}</span> leads with the best on-time record, 
-                while <span class="insight-stat">{worst_airline}</span> shows the most room for improvement. 
-                The operational efficiency difference translates to significant cost variations.
+                while <span class="insight-stat">{worst_airline}</span> shows the most room for improvement.
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -907,20 +905,10 @@ elif current_page == "Analytics":
                 hoverlabel=dict(bgcolor='#1A1A2E', bordercolor=COLORS['emerald'])
             )
             st.plotly_chart(fig, use_container_width=True, key="airport_best")
-        
-        st.markdown("""
-        <div class="insight-box warning">
-            <div class="insight-title">⚠️ Infrastructure Insight</div>
-            <div class="insight-text">
-                The top delayed airports contribute disproportionately to overall system delays. 
-                Targeted infrastructure investments at these hubs could yield the highest ROI for the entire aviation network.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
     
     with tab3:
         st.markdown("### Hour × Day Heatmap")
-        st.markdown('<div class="chart-explainer">This heatmap reveals the optimal and worst times to fly. Each cell shows the delay probability for that specific hour and day combination. Darker red indicates higher delay risk.</div>', unsafe_allow_html=True)
+        st.markdown('<div class="chart-explainer">This heatmap reveals the optimal and worst times to fly. Each cell shows the delay probability for that specific hour and day combination.</div>', unsafe_allow_html=True)
         
         hm_data = fdf.groupby(['DAY_OF_WEEK', 'DEP_HOUR'])['DEP_DEL15'].mean().reset_index()
         hm_pivot = hm_data.pivot(index='DEP_HOUR', columns='DAY_OF_WEEK', values='DEP_DEL15')
@@ -957,17 +945,17 @@ elif current_page == "Analytics":
         <div class="insight-box success">
             <div class="insight-title">✅ Optimal Flight Timing</div>
             <div class="insight-text">
-                <b>Best time to fly:</b> <span class="insight-stat">{DAYS[int(best_time['DAY_OF_WEEK'])-1]}</span> at 
-                <span class="insight-stat">{int(best_time['DEP_HOUR']):02d}:00</span> (only {best_time['DEP_DEL15']*100:.1f}% delay rate)<br>
-                <b>Worst time to fly:</b> <span class="insight-stat">{DAYS[int(worst_time['DAY_OF_WEEK'])-1]}</span> at 
-                <span class="insight-stat">{int(worst_time['DEP_HOUR']):02d}:00</span> ({worst_time['DEP_DEL15']*100:.1f}% delay rate)
+                <b>Best:</b> <span class="insight-stat">{DAYS[int(best_time['DAY_OF_WEEK'])-1]}</span> at 
+                <span class="insight-stat">{int(best_time['DEP_HOUR']):02d}:00</span> ({best_time['DEP_DEL15']*100:.1f}%)<br>
+                <b>Worst:</b> <span class="insight-stat">{DAYS[int(worst_time['DAY_OF_WEEK'])-1]}</span> at 
+                <span class="insight-stat">{int(worst_time['DEP_HOUR']):02d}:00</span> ({worst_time['DEP_DEL15']*100:.1f}%)
             </div>
         </div>
         """, unsafe_allow_html=True)
     
     with tab4:
         st.markdown("### Month × Region Seasonality Heatmap")
-        st.markdown('<div class="chart-explainer">This heatmap shows how delay rates vary by month across different regions. Identify seasonal patterns like monsoon in India, winter storms in North America, and summer congestion in Europe.</div>', unsafe_allow_html=True)
+        st.markdown('<div class="chart-explainer">Identify seasonal patterns like monsoon in India, winter storms in North America, and summer congestion in Europe.</div>', unsafe_allow_html=True)
         
         season_data = fdf.groupby(['MONTH', 'ORIGIN_REGION'])['DEP_DEL15'].mean().reset_index()
         season_pivot = season_data.pivot(index='ORIGIN_REGION', columns='MONTH', values='DEP_DEL15')
@@ -996,18 +984,6 @@ elif current_page == "Analytics":
         )
         
         st.plotly_chart(fig, use_container_width=True, key="season_heatmap")
-        
-        st.markdown("""
-        <div class="insight-box">
-            <div class="insight-title">💡 Seasonal Patterns Identified</div>
-            <div class="insight-text">
-                • <b>India (Jun-Sep):</b> Monsoon causes <span class="insight-stat">40-60%</span> higher delays<br>
-                • <b>North America (Dec-Feb):</b> Winter storms create cascading disruptions<br>
-                • <b>Europe (Jun-Aug):</b> Summer holiday rush strains airport capacity<br>
-                • <b>Middle East (Dec-Feb):</b> Morning fog impacts Dubai and Abu Dhabi operations
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # PAGE: DOMINO EFFECT
@@ -1028,7 +1004,6 @@ elif current_page == "Domino Effect":
             When a flight is delayed, the <b>same aircraft</b> arrives late for its next scheduled flight. 
             Crew members may time out due to duty regulations. Passengers miss connections. 
             This creates a <b>cascading chain reaction</b> where one delay triggers many more throughout the day.
-            The "Late Aircraft Delay" metric is the primary indicator of this phenomenon.
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -1039,7 +1014,7 @@ elif current_page == "Domino Effect":
     
     with col1:
         st.markdown("### Root Causes of Flight Delays")
-        st.markdown('<div class="chart-explainer">Breakdown of delay causes by total minutes. Understanding root causes helps prioritize improvement investments for maximum impact.</div>', unsafe_allow_html=True)
+        st.markdown('<div class="chart-explainer">Breakdown of delay causes by total minutes. Understanding root causes helps prioritize improvement investments.</div>', unsafe_allow_html=True)
         
         causes = {
             'Carrier Operations': delayed['CARRIER_DELAY'].sum(),
@@ -1114,15 +1089,14 @@ elif current_page == "Domino Effect":
         <div class="insight-title">⚠️ Critical Domino Effect Finding</div>
         <div class="insight-text">
             <span class="insight-stat">{late_pct:.1f}%</span> of all delay minutes are caused by 
-            <b>Late Aircraft</b> — the domino effect in action. This cascading impact can be mitigated through 
-            better schedule buffers, improved turnaround times, and strategic positioning of spare aircraft.
+            <b>Late Aircraft</b> — the domino effect in action.
         </div>
     </div>
     """, unsafe_allow_html=True)
     
     # Cascade throughout day
     st.markdown("### How Delays Compound Throughout the Day")
-    st.markdown('<div class="chart-explainer">This dual-axis chart shows both the number of flights affected by late aircraft (bars) and the average cascade delay in minutes (line). Notice how both metrics increase as the day progresses.</div>', unsafe_allow_html=True)
+    st.markdown('<div class="chart-explainer">This dual-axis chart shows both the number of flights affected by late aircraft (bars) and the average cascade delay in minutes (line).</div>', unsafe_allow_html=True)
     
     hourly_cascade = delayed.groupby('DEP_HOUR').agg({
         'LATE_AIRCRAFT_DELAY': ['count', 'mean']
@@ -1164,19 +1138,9 @@ elif current_page == "Domino Effect":
     )
     
     st.plotly_chart(fig, use_container_width=True, key="cascade_hourly")
-    
-    st.markdown("""
-    <div class="insight-box success">
-        <div class="insight-title">✅ Strategic Recommendation</div>
-        <div class="insight-text">
-            Early morning flights (5-7 AM) start with "fresh" aircraft that haven't accumulated delays. 
-            As the day progresses, delays compound exponentially. <b>For business-critical travel, always prioritize morning departures.</b>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# PAGE: ECONOMICS
+# PAGE: ECONOMICS (WITH WATERFALL CHART)
 # ═══════════════════════════════════════════════════════════════════════════════
 elif current_page == "Economics":
     
@@ -1191,8 +1155,8 @@ elif current_page == "Economics":
     <div class="insight-box">
         <div class="insight-title">💵 Cost Calculation Methodology</div>
         <div class="insight-text">
-            <b>Airline Cost:</b> $74.20 per minute of delay (fuel burn, crew overtime, aircraft repositioning, maintenance windows)<br>
-            <b>Passenger Cost:</b> $47.00 per minute (value of time, missed connections, hotel accommodations, compensation)<br>
+            <b>Airline Cost:</b> $74.20 per minute of delay (fuel burn, crew overtime, aircraft repositioning)<br>
+            <b>Passenger Cost:</b> $47.00 per minute (value of time, missed connections, hotel accommodations)<br>
             <i>Source: FAA Economic Values for Investment and Regulatory Analysis, 2024</i>
         </div>
     </div>
@@ -1245,6 +1209,71 @@ elif current_page == "Economics":
         </div>
         """, unsafe_allow_html=True)
     
+    # ═══════════════════════════════════════════════════════════════════════════
+    # WATERFALL CHART - Cost Breakdown by Delay Cause
+    # ═══════════════════════════════════════════════════════════════════════════
+    st.markdown("### 📊 Waterfall Analysis: Cost Breakdown by Delay Cause")
+    st.markdown('<div class="chart-explainer">This waterfall chart shows how each delay cause contributes to the total economic impact. Each bar represents the incremental cost added by that specific cause, building up to the total.</div>', unsafe_allow_html=True)
+    
+    delayed = fdf[fdf['DEP_DEL15'] == 1]
+    
+    # Calculate cost by delay cause (using delay minutes * average cost per minute)
+    cost_per_min = 121.20  # $74.20 airline + $47.00 passenger
+    
+    carrier_cost = delayed['CARRIER_DELAY'].sum() * cost_per_min
+    weather_cost = delayed['WEATHER_DELAY'].sum() * cost_per_min
+    nas_cost = delayed['NAS_DELAY'].sum() * cost_per_min
+    late_aircraft_cost = delayed['LATE_AIRCRAFT_DELAY'].sum() * cost_per_min
+    security_cost = delayed['SECURITY_DELAY'].sum() * cost_per_min
+    
+    waterfall_total = carrier_cost + weather_cost + nas_cost + late_aircraft_cost + security_cost
+    
+    # Create waterfall chart
+    fig = go.Figure(go.Waterfall(
+        name="Cost Breakdown",
+        orientation="v",
+        measure=["relative", "relative", "relative", "relative", "relative", "total"],
+        x=["Carrier<br>Operations", "Weather", "Air Traffic<br>Control", "Late Aircraft<br>(Domino)", "Security", "Total<br>Impact"],
+        y=[carrier_cost, weather_cost, nas_cost, late_aircraft_cost, security_cost, 0],
+        textposition="outside",
+        text=[format_currency(carrier_cost), format_currency(weather_cost), format_currency(nas_cost), 
+              format_currency(late_aircraft_cost), format_currency(security_cost), format_currency(waterfall_total)],
+        textfont=dict(size=11, color=COLORS['text']),
+        connector={"line": {"color": COLORS['purple'], "width": 2, "dash": "dot"}},
+        increasing={"marker": {"color": COLORS['rose']}},
+        decreasing={"marker": {"color": COLORS['emerald']}},
+        totals={"marker": {"color": COLORS['purple']}},
+        hovertemplate="<b>%{x}</b><br>Cost: %{text}<extra></extra>"
+    ))
+    
+    fig.update_layout(
+        height=450,
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font=dict(color=COLORS['text']),
+        margin=dict(l=50, r=50, t=30, b=80),
+        yaxis=dict(title="Economic Impact ($)", gridcolor=COLORS['grid'], tickformat="$,.0f"),
+        xaxis=dict(title=""),
+        showlegend=False,
+        hoverlabel=dict(bgcolor='#1A1A2E', bordercolor=COLORS['purple'])
+    )
+    
+    st.plotly_chart(fig, use_container_width=True, key="waterfall_cost")
+    
+    # Insight about waterfall
+    domino_pct = (late_aircraft_cost / waterfall_total) * 100
+    st.markdown(f"""
+    <div class="insight-box warning">
+        <div class="insight-title">⚠️ Waterfall Analysis Insight</div>
+        <div class="insight-text">
+            The <b>Late Aircraft (Domino Effect)</b> accounts for <span class="insight-stat">{format_currency(late_aircraft_cost)}</span> 
+            (<span class="insight-stat">{domino_pct:.1f}%</span>) of total delay costs. 
+            This single factor, caused by cascading delays, represents the largest opportunity for cost reduction through 
+            strategic schedule buffering and spare aircraft positioning.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
     col1, col2 = st.columns(2)
     
     with col1:
@@ -1285,7 +1314,7 @@ elif current_page == "Economics":
     
     with col2:
         st.markdown("### Monthly Cost Distribution")
-        st.markdown('<div class="chart-explainer">Stacked bar chart showing airline vs passenger cost contribution each month. Seasonal patterns affect both cost components.</div>', unsafe_allow_html=True)
+        st.markdown('<div class="chart-explainer">Stacked bar chart showing airline vs passenger cost contribution each month.</div>', unsafe_allow_html=True)
         
         monthly_cost = fdf.groupby('MONTH').agg({
             'DELAY_COST_AIRLINE': 'sum',
@@ -1325,7 +1354,7 @@ elif current_page == "Economics":
     
     # Pareto
     st.markdown("### Pareto Analysis: The 80/20 Rule in Action")
-    st.markdown('<div class="chart-explainer">Pareto analysis identifies which airlines contribute most to total delay costs. The red line shows cumulative percentage — focus improvement efforts on airlines below the 80% threshold for maximum ROI.</div>', unsafe_allow_html=True)
+    st.markdown('<div class="chart-explainer">Pareto analysis identifies which airlines contribute most to total delay costs. Focus improvement efforts on airlines below the 80% threshold for maximum ROI.</div>', unsafe_allow_html=True)
     
     airline_cost_df = fdf.groupby('AIRLINE_NAME')['DELAY_COST_TOTAL'].sum().reset_index()
     airline_cost_df = airline_cost_df.sort_values('DELAY_COST_TOTAL', ascending=False).head(15)
@@ -1369,22 +1398,9 @@ elif current_page == "Economics":
     )
     
     st.plotly_chart(fig, use_container_width=True, key="pareto")
-    
-    airlines_80 = len(airline_cost_df[airline_cost_df['Cumulative %'] <= 80])
-    
-    st.markdown(f"""
-    <div class="insight-box">
-        <div class="insight-title">💡 Pareto Insight for Strategic Planning</div>
-        <div class="insight-text">
-            <span class="insight-stat">{airlines_80} airlines</span> 
-            contribute to approximately <span class="insight-stat">80%</span> of all delay-related costs.
-            Focusing operational improvement initiatives on these carriers would maximize return on investment for industry-wide efficiency gains.
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# PAGE: AI PREDICTOR
+# PAGE: AI PREDICTOR (FIXED - No date_input)
 # ═══════════════════════════════════════════════════════════════════════════════
 elif current_page == "AI Predictor":
     
@@ -1399,7 +1415,7 @@ elif current_page == "AI Predictor":
     
     with tab1:
         st.markdown("### Model Architecture & Evaluation")
-        st.markdown('<div class="chart-explainer">A Random Forest classifier trained on 50,000 flight records to predict the probability of flight delays based on multiple features including time, route, and carrier information.</div>', unsafe_allow_html=True)
+        st.markdown('<div class="chart-explainer">A Random Forest classifier trained on 50,000 flight records to predict the probability of flight delays based on multiple features.</div>', unsafe_allow_html=True)
         
         @st.cache_resource
         def train_model():
@@ -1447,22 +1463,20 @@ elif current_page == "AI Predictor":
         
         with col1:
             st.markdown("### Confusion Matrix")
-            st.markdown('<div class="chart-explainer">Shows prediction accuracy breakdown: True Negatives (on-time predicted correctly), False Positives (on-time predicted as delayed), False Negatives (delayed predicted as on-time), True Positives (delayed predicted correctly).</div>', unsafe_allow_html=True)
             
             cm = confusion_matrix(y_test, y_pred)
             
-            # Proper 2x2 confusion matrix with all 4 quadrants
-            labels = [['True Negative<br>(Correct On-Time)', 'False Positive<br>(Wrong Delay Pred)'],
+            labels = [['True Negative<br>(Correct On-Time)', 'False Positive<br>(Wrong Delay)'],
                      ['False Negative<br>(Missed Delay)', 'True Positive<br>(Correct Delay)']]
             
             fig = go.Figure(data=go.Heatmap(
                 z=cm,
                 x=['Predicted: On-Time', 'Predicted: Delayed'],
                 y=['Actual: On-Time', 'Actual: Delayed'],
-                colorscale=[[0, COLORS['emerald']], [0.25, '#5EEAD4'], [0.5, COLORS['amber']], [0.75, '#FB923C'], [1, COLORS['rose']]],
-                text=[[f"<b>{cm[i][j]:,}</b><br><span style='font-size:10px'>{labels[i][j]}</span>" for j in range(2)] for i in range(2)],
+                colorscale=[[0, COLORS['emerald']], [0.5, COLORS['amber']], [1, COLORS['rose']]],
+                text=[[f"<b>{cm[i][j]:,}</b><br><span style='font-size:9px'>{labels[i][j]}</span>" for j in range(2)] for i in range(2)],
                 texttemplate="%{text}",
-                textfont={"size": 14, "color": "white"},
+                textfont={"size": 12, "color": "white"},
                 hovertemplate="<b>%{y}</b> → <b>%{x}</b><br>Count: %{z:,}<extra></extra>",
                 showscale=True,
                 colorbar=dict(title="Count")
@@ -1482,7 +1496,6 @@ elif current_page == "AI Predictor":
         
         with col2:
             st.markdown("### ROC-AUC Curve")
-            st.markdown('<div class="chart-explainer">Receiver Operating Characteristic curve measuring model discrimination ability. The area under the curve (AUC) closer to 1.0 indicates better performance. Our model significantly outperforms random classification (diagonal line).</div>', unsafe_allow_html=True)
             
             fig = go.Figure()
             
@@ -1518,7 +1531,6 @@ elif current_page == "AI Predictor":
             st.plotly_chart(fig, use_container_width=True, key="roc")
         
         st.markdown("### Feature Importance Analysis")
-        st.markdown('<div class="chart-explainer">Ranking of features by their contribution to prediction accuracy. Higher importance means the feature has more influence on whether a flight will be delayed.</div>', unsafe_allow_html=True)
         
         importance_df = pd.DataFrame({
             'Feature': ['Month', 'Day of Week', 'Departure Hour', 'Distance', 'Origin Airport', 'Destination', 'Airline'],
@@ -1552,173 +1564,102 @@ elif current_page == "AI Predictor":
         )
         
         st.plotly_chart(fig, use_container_width=True, key="importance")
-        
-        st.markdown("""
-        <div class="insight-box">
-            <div class="insight-title">💡 Model Interpretation</div>
-            <div class="insight-text">
-                <b>Departure Hour</b> and <b>Distance</b> are the strongest predictors of delays.
-                This aligns with the domino effect theory — later flights accumulate delays, and longer routes 
-                have more variables that can cause disruptions. Airline and airport factors also play significant roles.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
     
     with tab2:
         st.markdown("### Predict Delay Risk for Your Flight")
-        st.markdown('<div class="chart-explainer">Enter your flight details below. The model will validate that the airline operates on your selected route and provide a delay probability assessment.</div>', unsafe_allow_html=True)
+        st.markdown('<div class="chart-explainer">Enter your flight details below. The model validates that the airline operates on your selected route and provides a delay probability assessment.</div>', unsafe_allow_html=True)
         
         col1, col2 = st.columns(2)
         
         with col1:
-            # Use month and day dropdowns instead of date_input
-            pred_month = st.selectbox("📅 Month", MONTHS, key="pred_month_input")
-            pred_day = st.selectbox("📆 Day of Week", DAYS, key="pred_day_input")
-            pred_hour = st.slider("🕐 Departure Hour", 0, 23, 12, key="pred_hour",
-                                 help="Select the scheduled departure time (24-hour format)")
+            pred_month = st.selectbox("📅 Travel Month", MONTHS, index=5, key="pred_month")
+            pred_day = st.selectbox("📆 Day of Week", DAYS, index=2, key="pred_day")
+            pred_hour = st.slider("🕐 Departure Hour (24h)", 0, 23, 14, key="pred_hour")
         
         with col2:
-            pred_origin = st.selectbox("🛫 Origin Airport", 
-                [f"{row['city']} ({row['code']})" for _, row in airports_df.iterrows()], 
-                key="pred_origin")
-            
-            pred_dest = st.selectbox("🛬 Destination Airport",
-                [f"{row['city']} ({row['code']})" for _, row in airports_df.iterrows()], 
-                key="pred_dest")
+            airport_list = [f"{row['city']} ({row['code']})" for _, row in airports_df.iterrows()]
+            pred_origin = st.selectbox("🛫 Origin Airport", airport_list, index=0, key="pred_origin")
+            pred_dest = st.selectbox("🛬 Destination Airport", airport_list, index=min(1, len(airport_list)-1), key="pred_dest")
         
-        # Get codes
         origin_code = pred_origin.split('(')[1].replace(')', '')
         dest_code = pred_dest.split('(')[1].replace(')', '')
         
-        # Same origin/destination check
+        valid_route = True
+        pred_airline = None
+        
         if origin_code == dest_code:
             st.markdown("""
             <div class="error-box">
                 <div class="error-title">⚠️ Invalid Route</div>
-                <div class="error-text">Origin and destination cannot be the same airport. Please select different airports.</div>
+                <div class="error-text">Origin and destination cannot be the same airport.</div>
             </div>
             """, unsafe_allow_html=True)
-            route_airlines = []
+            valid_route = False
         else:
-            # VALIDATE: Get airlines that actually operate this route
             route_airlines = df[(df['ORIGIN'] == origin_code) & (df['DEST'] == dest_code)]['AIRLINE_NAME'].unique().tolist()
-        
-        if len(route_airlines) == 0 and origin_code != dest_code:
-            st.markdown("""
-            <div class="error-box">
-                <div class="error-title">⚠️ No Direct Route Available</div>
-                <div class="error-text">No airlines in our database operate direct flights between these airports. Please select a different origin-destination pair.</div>
-            </div>
-            """, unsafe_allow_html=True)
-            pred_airline = None
-        elif len(route_airlines) > 0:
-            pred_airline = st.selectbox("✈️ Airline (Operating this Route)",
-                sorted(route_airlines), key="pred_airline")
-        else:
-            pred_airline = None
-        
-        if pred_airline and st.button("🔮 PREDICT DELAY RISK", key="predict_btn"):
-            # Calculate features
-            origin_info = airports_df[airports_df['code'] == origin_code].iloc[0]
-            dest_info = airports_df[airports_df['code'] == dest_code].iloc[0]
             
-            # Calculate distance using Haversine formula
-            lat1, lon1 = np.radians(origin_info['lat']), np.radians(origin_info['lon'])
-            lat2, lon2 = np.radians(dest_info['lat']), np.radians(dest_info['lon'])
-            dlat, dlon = lat2 - lat1, lon2 - lon1
-            a = np.sin(dlat/2)**2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon/2)**2
-            distance = 3956 * 2 * np.arcsin(np.sqrt(a))
-            
-            # Get month and day indices
-            month_idx = MONTHS.index(pred_month) + 1
-            day_idx = DAYS.index(pred_day) + 1
-            
-            # Encode categorical features
-            origin_enc = hash(origin_code) % 1000
-            dest_enc = hash(dest_code) % 1000
-            carrier_enc = hash(pred_airline) % 1000
-            
-            features = [[month_idx, day_idx, pred_hour, distance, origin_enc, dest_enc, carrier_enc]]
-            
-            prediction = model.predict(features)[0]
-            probability = model.predict_proba(features)[0][1]
-            
-            st.markdown("<br>", unsafe_allow_html=True)
-            
-            # Show flight details
-            col_d1, col_d2, col_d3 = st.columns(3)
-            with col_d1:
-                st.markdown(f"**📅 {pred_month}, {pred_day}**")
-            with col_d2:
-                st.markdown(f"**🕐 {pred_hour:02d}:00 departure**")
-            with col_d3:
-                st.markdown(f"**📏 {distance:,.0f} miles**")
-            
-            st.markdown(f"**Route:** {pred_origin} → {pred_dest}")
-            st.markdown(f"**Airline:** {pred_airline}")
-            
-            st.markdown("<br>", unsafe_allow_html=True)
-            
-            if prediction == 1 or probability > 0.4:
-                st.markdown(f"""
-                <div class="prediction-high">
-                    <div class="prediction-icon">⚠️</div>
-                    <div class="prediction-title" style="color: #FDA4AF;">HIGH DELAY RISK</div>
-                    <div class="prediction-prob" style="color: #F43F5E;">{probability*100:.1f}%</div>
-                    <p style="color: #E2E8F0;">probability of delay (>15 minutes)</p>
-                    <p style="color: #94A3B8; margin-top: 1rem;">Consider booking an earlier flight or allow extra buffer time for connections.</p>
+            if len(route_airlines) == 0:
+                st.markdown("""
+                <div class="error-box">
+                    <div class="error-title">⚠️ No Direct Route</div>
+                    <div class="error-text">No airlines operate direct flights on this route in our database. Try different airports.</div>
                 </div>
                 """, unsafe_allow_html=True)
+                valid_route = False
             else:
-                st.markdown(f"""
-                <div class="prediction-low">
-                    <div class="prediction-icon">✅</div>
-                    <div class="prediction-title" style="color: #6EE7B7;">LOW DELAY RISK</div>
-                    <div class="prediction-prob" style="color: #10B981;">{(1-probability)*100:.1f}%</div>
-                    <p style="color: #E2E8F0;">probability of on-time departure</p>
-                    <p style="color: #94A3B8; margin-top: 1rem;">This flight has favorable on-time performance indicators.</p>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            # Risk factors
-            st.markdown("<br>", unsafe_allow_html=True)
-            st.markdown("### 📋 Risk Factors Analysis")
-            
-            risk_col1, risk_col2 = st.columns(2)
-            
-            with risk_col1:
-                # Time-based risk
-                if pred_hour >= 17:
-                    st.markdown("⚠️ **Evening departure** - Higher risk due to accumulated delays")
-                elif pred_hour <= 7:
-                    st.markdown("✅ **Morning departure** - Lower risk, aircraft starts fresh")
-                else:
-                    st.markdown("ℹ️ **Mid-day departure** - Moderate delay risk")
+                pred_airline = st.selectbox("✈️ Select Airline", sorted(route_airlines), key="pred_airline")
+        
+        if valid_route and pred_airline:
+            if st.button("🔮 PREDICT DELAY RISK", use_container_width=True, key="predict_btn"):
+                origin_info = airports_df[airports_df['code'] == origin_code].iloc[0]
+                dest_info = airports_df[airports_df['code'] == dest_code].iloc[0]
                 
-                # Day-based risk
-                if pred_day in ['Friday', 'Sunday']:
-                    st.markdown("⚠️ **Weekend travel day** - Higher passenger volumes")
-                elif pred_day == 'Tuesday':
-                    st.markdown("✅ **Tuesday** - Typically lowest delay rates")
-                else:
-                    st.markdown("ℹ️ **Standard weekday** - Average delay patterns")
-            
-            with risk_col2:
-                # Season-based risk
-                if month_idx in [6, 7, 8]:
-                    st.markdown("⚠️ **Summer season** - Thunderstorm risk (varies by region)")
-                elif month_idx in [12, 1, 2]:
-                    st.markdown("⚠️ **Winter season** - Weather disruption risk")
-                else:
-                    st.markdown("✅ **Moderate season** - Lower weather-related delays")
+                lat1, lon1 = np.radians(origin_info['lat']), np.radians(origin_info['lon'])
+                lat2, lon2 = np.radians(dest_info['lat']), np.radians(dest_info['lon'])
+                dlat, dlon = lat2 - lat1, lon2 - lon1
+                a = np.sin(dlat/2)**2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon/2)**2
+                distance = 3956 * 2 * np.arcsin(np.sqrt(a))
                 
-                # Distance-based risk
-                if distance > 2000:
-                    st.markdown("ℹ️ **Long-haul flight** - More variables, but often better buffer")
-                elif distance < 500:
-                    st.markdown("✅ **Short-haul flight** - Quick turnaround possible")
+                month_idx = MONTHS.index(pred_month) + 1
+                day_idx = DAYS.index(pred_day) + 1
+                origin_enc = hash(origin_code) % 1000
+                dest_enc = hash(dest_code) % 1000
+                carrier_enc = hash(pred_airline) % 1000
+                
+                features = [[month_idx, day_idx, pred_hour, distance, origin_enc, dest_enc, carrier_enc]]
+                
+                prediction = model.predict(features)[0]
+                probability = model.predict_proba(features)[0][1]
+                
+                st.markdown("---")
+                
+                fc1, fc2, fc3 = st.columns(3)
+                fc1.markdown(f"**📅 {pred_month}, {pred_day}**")
+                fc2.markdown(f"**🕐 {pred_hour:02d}:00 departure**")
+                fc3.markdown(f"**📏 {distance:,.0f} miles**")
+                
+                st.markdown(f"**Route:** {pred_origin} → {pred_dest} | **Airline:** {pred_airline}")
+                
+                st.markdown("<br>", unsafe_allow_html=True)
+                
+                if prediction == 1 or probability > 0.4:
+                    st.markdown(f"""
+                    <div class="prediction-high">
+                        <div class="prediction-icon">⚠️</div>
+                        <div class="prediction-title" style="color: #FDA4AF;">HIGH DELAY RISK</div>
+                        <div class="prediction-prob" style="color: #F43F5E;">{probability*100:.1f}%</div>
+                        <p style="color: #E2E8F0;">probability of delay (>15 minutes)</p>
+                    </div>
+                    """, unsafe_allow_html=True)
                 else:
-                    st.markdown("ℹ️ **Medium-haul flight** - Standard delay patterns")
+                    st.markdown(f"""
+                    <div class="prediction-low">
+                        <div class="prediction-icon">✅</div>
+                        <div class="prediction-title" style="color: #6EE7B7;">LOW DELAY RISK</div>
+                        <div class="prediction-prob" style="color: #10B981;">{(1-probability)*100:.1f}%</div>
+                        <p style="color: #E2E8F0;">probability of on-time departure</p>
+                    </div>
+                    """, unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # PAGE: SIMULATOR
@@ -1747,7 +1688,6 @@ elif current_page == "Simulator":
     cur_cost = fdf['DELAY_COST_TOTAL'].sum()
     
     st.markdown("### Current Baseline")
-    st.markdown('<div class="chart-explainer">These are the current performance metrics based on your filter selections.</div>', unsafe_allow_html=True)
     
     cc1, cc2, cc3 = st.columns(3)
     cc1.metric("Delayed Flights", f"{cur_delays:,}")
@@ -1756,21 +1696,20 @@ elif current_page == "Simulator":
     
     st.markdown("---")
     st.markdown("### Improvement Scenarios")
-    st.markdown('<div class="chart-explainer">Move the sliders to simulate different operational improvement scenarios. Each category has different implementation costs and feasibility.</div>', unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
     
     with col1:
         carrier_red = st.slider("✈️ Carrier Operations Improvement (%)", 0, 50, 0, 5,
-            help="Better maintenance scheduling, crew optimization, ground operations")
+            help="Better maintenance scheduling, crew optimization")
         weather_red = st.slider("🌧️ Weather Impact Mitigation (%)", 0, 30, 0, 5,
-            help="Advanced forecasting, proactive rescheduling, de-icing efficiency")
+            help="Advanced forecasting, proactive rescheduling")
     
     with col2:
         nas_red = st.slider("🗼 Air Traffic Control Efficiency (%)", 0, 40, 0, 5,
-            help="NextGen implementation, better flow management, reduced ground stops")
+            help="Better flow management, reduced ground stops")
         late_red = st.slider("🔄 Late Aircraft Recovery (%)", 0, 50, 0, 5,
-            help="Schedule buffers, faster turnaround, spare aircraft positioning")
+            help="Schedule buffers, faster turnaround")
     
     total_red = (carrier_red * 0.35 + weather_red * 0.20 + nas_red * 0.25 + late_red * 0.20) / 100
     
@@ -1794,15 +1733,12 @@ elif current_page == "Simulator":
             <div class="insight-title">✅ Scenario Impact Summary</div>
             <div class="insight-text">
                 Implementing these improvements would result in:<br>
-                • <span class="insight-stat">{cur_delays - new_delays:,.0f}</span> fewer delayed flights annually<br>
+                • <span class="insight-stat">{cur_delays - new_delays:,.0f}</span> fewer delayed flights<br>
                 • <span class="insight-stat">{format_currency(savings)}</span> in total cost savings<br>
-                • <span class="insight-stat">{cur_rate - new_rate:.1f}%</span> improvement in on-time performance<br>
-                • Improved passenger satisfaction and brand reputation
+                • <span class="insight-stat">{cur_rate - new_rate:.1f}%</span> improvement in on-time performance
             </div>
         </div>
         """, unsafe_allow_html=True)
-    else:
-        st.info("Adjust the sliders above to simulate improvement scenarios.")
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # PAGE: REGIONAL
@@ -1828,7 +1764,6 @@ elif current_page == "Regional":
         ic4.metric("Economic Impact", format_currency(india_df['DELAY_COST_TOTAL'].sum()))
         
         st.markdown("### Monsoon Impact on Flight Operations")
-        st.markdown('<div class="chart-explainer">June through September marks India\'s monsoon season. Red bars highlight these months with significantly elevated delay rates due to heavy rainfall, thunderstorms, and reduced visibility.</div>', unsafe_allow_html=True)
         
         india_monthly = india_df.groupby('MONTH')['DEP_DEL15'].mean().reset_index()
         colors = [COLORS['emerald'] if m not in [6,7,8,9] else COLORS['rose'] for m in range(1,13)]
@@ -1859,41 +1794,12 @@ elif current_page == "Regional":
         
         st.plotly_chart(fig, use_container_width=True, key="india_monthly")
         
-        # Indian airlines only
-        st.markdown("### Top Indian Carriers Performance")
-        indian_carriers = ['IndiGo', 'Air India', 'SpiceJet', 'Vistara', 'Go First', 'AirAsia India', 'Air India Express']
-        india_airlines = india_df[india_df['AIRLINE_NAME'].isin(indian_carriers)].groupby('AIRLINE_NAME')['DEP_DEL15'].agg(['count', 'mean']).reset_index()
-        india_airlines.columns = ['Airline', 'Flights', 'Delay Rate']
-        india_airlines = india_airlines[india_airlines['Flights'] >= 20].sort_values('Delay Rate')
-        
-        if len(india_airlines) > 0:
-            fig = go.Figure()
-            fig.add_trace(go.Bar(
-                y=india_airlines['Airline'],
-                x=india_airlines['Delay Rate'] * 100,
-                orientation='h',
-                marker_color=COLORS['amber'],
-                text=[f"{x:.1f}%" for x in india_airlines['Delay Rate'] * 100],
-                textposition='outside',
-                textfont=dict(color=COLORS['text'])
-            ))
-            fig.update_layout(
-                height=300,
-                paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='rgba(0,0,0,0)',
-                font=dict(color=COLORS['text']),
-                margin=dict(l=0, r=80, t=10, b=30),
-                xaxis=dict(title="Delay Rate (%)", gridcolor=COLORS['grid'])
-            )
-            st.plotly_chart(fig, use_container_width=True, key="india_airlines")
-        
         st.markdown("""
         <div class="insight-box warning">
             <div class="insight-title">🌧️ India Aviation Insight</div>
             <div class="insight-text">
                 Monsoon season (Jun-Sep) causes <span class="insight-stat">40-60%</span> higher delays.
-                Mumbai (BOM) and Delhi (DEL) are most affected. Winter fog (Dec-Jan) also severely impacts 
-                North Indian airports, particularly in early morning hours.
+                Mumbai (BOM) and Delhi (DEL) are most affected.
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -1908,9 +1814,7 @@ elif current_page == "Regional":
         mc4.metric("Economic Impact", format_currency(me_df['DELAY_COST_TOTAL'].sum()))
         
         st.markdown("### Gulf Carriers Performance")
-        st.markdown('<div class="chart-explainer">Performance comparison of Gulf-based carriers only (Emirates, Qatar Airways, Etihad, etc.). These premium carriers typically maintain industry-leading on-time performance.</div>', unsafe_allow_html=True)
         
-        # Filter to only ACTUAL Gulf carriers
         gulf_airlines_df = me_df[me_df['AIRLINE_NAME'].isin(GULF_CARRIERS)].groupby('AIRLINE_NAME')['DEP_DEL15'].agg(['count', 'mean']).reset_index()
         gulf_airlines_df.columns = ['Airline', 'Flights', 'Delay Rate']
         gulf_airlines_df = gulf_airlines_df[gulf_airlines_df['Flights'] >= 10].sort_values('Delay Rate')
@@ -1924,8 +1828,7 @@ elif current_page == "Regional":
                 marker_color=COLORS['purple'],
                 text=[f"{x:.1f}%" for x in gulf_airlines_df['Delay Rate'] * 100],
                 textposition='outside',
-                textfont=dict(color=COLORS['text'], size=11),
-                hovertemplate="<b>%{y}</b><br>Delay Rate: %{x:.1f}%<extra></extra>"
+                textfont=dict(color=COLORS['text'], size=11)
             ))
             
             fig.update_layout(
@@ -1934,25 +1837,12 @@ elif current_page == "Regional":
                 plot_bgcolor='rgba(0,0,0,0)',
                 font=dict(color=COLORS['text']),
                 margin=dict(l=0, r=80, t=10, b=30),
-                xaxis=dict(title="Delay Rate (%)", gridcolor=COLORS['grid']),
-                hoverlabel=dict(bgcolor='#1A1A2E', bordercolor=COLORS['purple'])
+                xaxis=dict(title="Delay Rate (%)", gridcolor=COLORS['grid'])
             )
             
             st.plotly_chart(fig, use_container_width=True, key="gulf_airlines")
         else:
             st.info("No Gulf carrier data available with the current filters.")
-        
-        st.markdown("""
-        <div class="insight-box">
-            <div class="insight-title">🇦🇪 Gulf Region Insight</div>
-            <div class="insight-text">
-                Premium Gulf carriers invest heavily in operational excellence and punctuality.
-                Dubai International (DXB), the world's busiest international hub, maintains 
-                strong on-time performance despite massive traffic volumes. Winter morning fog (Dec-Feb) 
-                remains the primary weather challenge in the region.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
     
     with tab3:
         na_df = df[df['ORIGIN_REGION'] == 'North America']
@@ -1964,7 +1854,6 @@ elif current_page == "Regional":
         nc4.metric("Economic Impact", format_currency(na_df['DELAY_COST_TOTAL'].sum()))
         
         st.markdown("### Seasonal Delay Pattern")
-        st.markdown('<div class="chart-explainer">Color coding: Red = Winter storms (Dec-Feb), Yellow = Summer thunderstorms (Jun-Aug), Green = Stable weather periods. North America experiences the most pronounced seasonal variations.</div>', unsafe_allow_html=True)
         
         na_monthly = na_df.groupby('MONTH')['DEP_DEL15'].mean().reset_index()
         colors = [COLORS['rose'] if m in [1,2,12] else COLORS['amber'] if m in [6,7,8] else COLORS['emerald'] for m in range(1,13)]
@@ -1976,8 +1865,7 @@ elif current_page == "Regional":
             marker_color=colors,
             text=[f"{x:.1f}%" for x in na_monthly['DEP_DEL15'] * 100],
             textposition='outside',
-            textfont=dict(color=COLORS['text'], size=11),
-            hovertemplate="<b>%{x}</b><br>Delay Rate: %{y:.1f}%<extra></extra>"
+            textfont=dict(color=COLORS['text'], size=11)
         ))
         
         fig.update_layout(
@@ -1986,23 +1874,10 @@ elif current_page == "Regional":
             plot_bgcolor='rgba(0,0,0,0)',
             font=dict(color=COLORS['text']),
             margin=dict(l=50, r=20, t=20, b=30),
-            yaxis=dict(title="Delay Rate (%)", gridcolor=COLORS['grid']),
-            hoverlabel=dict(bgcolor='#1A1A2E', bordercolor=COLORS['purple'])
+            yaxis=dict(title="Delay Rate (%)", gridcolor=COLORS['grid'])
         )
         
         st.plotly_chart(fig, use_container_width=True, key="na_monthly")
-        
-        st.markdown("""
-        <div class="insight-box warning">
-            <div class="insight-title">🇺🇸 North America Insight</div>
-            <div class="insight-text">
-                Winter storms (Dec-Feb) cause the highest delays due to snow, ice, and de-icing requirements.
-                Summer thunderstorms (Jun-Aug) create ground stops at major hubs. Chicago O'Hare (ORD), 
-                Denver (DEN), and New York airports are most frequently impacted by weather.
-                Holiday travel (Thanksgiving, Christmas) adds significant congestion.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # PAGE: SUMMARY
@@ -2030,8 +1905,7 @@ elif current_page == "Summary":
                 • <b>Total Flights Analyzed:</b> <span class="insight-stat">{total_flights:,}</span><br>
                 • <b>Delayed Flights:</b> <span class="insight-stat">{total_delayed:,}</span> ({total_delayed/total_flights*100:.1f}%)<br>
                 • <b>Total Economic Impact:</b> <span class="insight-stat">{format_currency(total_cost)}</span><br>
-                • <b>Global Coverage:</b> <span class="insight-stat">{len(airports_df)}</span> airports, <span class="insight-stat">{len(airlines_df)}</span> airlines<br>
-                • <b>Time Period:</b> January - December 2024
+                • <b>Global Coverage:</b> <span class="insight-stat">{len(airports_df)}</span> airports, <span class="insight-stat">{len(airlines_df)}</span> airlines
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -2058,9 +1932,8 @@ elif current_page == "Summary":
     <div class="insight-box">
         <div class="insight-title">🌊 Finding 1: The Domino Effect is Quantifiable</div>
         <div class="insight-text">
-            Late aircraft delays compound throughout the day. Our analysis shows evening flights are 
-            significantly more likely to be delayed than morning flights. Airlines can break this cascade 
-            through strategic schedule buffering and spare aircraft positioning at hub airports.
+            Late aircraft delays compound throughout the day. Evening flights are significantly more likely 
+            to be delayed than morning flights. Airlines can break this cascade through strategic schedule buffering.
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -2069,10 +1942,8 @@ elif current_page == "Summary":
     <div class="insight-box warning">
         <div class="insight-title">🌧️ Finding 2: Weather Creates Predictable Seasonal Patterns</div>
         <div class="insight-text">
-            India's monsoon, North America's winter storms, and summer thunderstorms create 
-            predictable delay peaks. Airlines and passengers can leverage this predictability 
-            for better planning. Pre-emptive schedule adjustments during high-risk periods could 
-            reduce cascading impacts by 15-25%.
+            India's monsoon, North America's winter storms, and summer thunderstorms create predictable delay peaks. 
+            Pre-emptive schedule adjustments during high-risk periods could reduce cascading impacts by 15-25%.
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -2082,8 +1953,7 @@ elif current_page == "Summary":
         <div class="insight-title">📈 Finding 3: Pareto Principle Applies to Aviation Delays</div>
         <div class="insight-text">
             A small number of airlines and airports contribute disproportionately to overall delay minutes. 
-            Targeted infrastructure investments and operational improvements at these bottlenecks would 
-            yield maximum ROI for the entire aviation ecosystem.
+            Targeted improvements at these bottlenecks would yield maximum ROI.
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -2095,13 +1965,13 @@ elif current_page == "Summary":
     with col1:
         st.markdown("""
         <div class="insight-box">
-            <div class="insight-title">👤 For Travelers & Corporate Travel Managers</div>
+            <div class="insight-title">👤 For Travelers</div>
             <div class="insight-text">
-                1. Prioritize early morning departures (5-7 AM) for critical trips<br>
-                2. Avoid peak delay seasons in your destination region<br>
+                1. Prioritize early morning departures (5-7 AM)<br>
+                2. Avoid peak delay seasons in your destination<br>
                 3. Build minimum 90-minute buffers for connections<br>
-                4. Use the AI predictor to assess delay risk before booking<br>
-                5. Consider airlines with proven on-time performance track records
+                4. Use the AI predictor to assess delay risk<br>
+                5. Consider airlines with proven on-time performance
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -2109,13 +1979,13 @@ elif current_page == "Summary":
     with col2:
         st.markdown("""
         <div class="insight-box">
-            <div class="insight-title">🏢 For Airlines & Airport Operators</div>
+            <div class="insight-title">🏢 For Airlines & Airports</div>
             <div class="insight-text">
                 1. Implement strategic schedule buffers at hub rotations<br>
-                2. Invest in predictive maintenance to reduce carrier delays<br>
-                3. Optimize turnaround processes to minimize late aircraft impact<br>
+                2. Invest in predictive maintenance<br>
+                3. Optimize turnaround processes<br>
                 4. Develop advanced weather contingency protocols<br>
-                5. Focus improvement resources on highest-impact routes
+                5. Focus resources on highest-impact routes
             </div>
         </div>
         """, unsafe_allow_html=True)
