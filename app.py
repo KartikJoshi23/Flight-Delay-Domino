@@ -1,6 +1,6 @@
 # ═══════════════════════════════════════════════════════════════════════════════
-# ✈️ FLIGHT DELAY DOMINO EFFECT - PROFESSIONAL DASHBOARD
-# Executive Boardroom Presentation Ready
+# ✈️ FLIGHT DELAY DOMINO EFFECT - EXECUTIVE DASHBOARD
+# Final Production Version - All Issues Fixed
 # ═══════════════════════════════════════════════════════════════════════════════
 
 import streamlit as st
@@ -420,13 +420,6 @@ st.markdown("""
         border-radius: 10px;
     }
     
-    /* ═══════════════ DATE INPUT ═══════════════ */
-    .stDateInput > div > div {
-        background: rgba(26, 26, 46, 0.8);
-        border: 1px solid rgba(139, 92, 246, 0.2);
-        border-radius: 10px;
-    }
-    
     /* ═══════════════ FOOTER ═══════════════ */
     .footer {
         text-align: center;
@@ -548,7 +541,7 @@ if 'current_page' not in st.session_state:
     st.session_state.current_page = "Overview"
 
 for i, page in enumerate(pages):
-    if nav_cols[i].button(page, key=f"nav_{i}", use_container_width=True):
+    if nav_cols[i].button(page, key=f"nav_{i}"):
         st.session_state.current_page = page
 
 current_page = st.session_state.current_page
@@ -1458,7 +1451,7 @@ elif current_page == "AI Predictor":
             
             cm = confusion_matrix(y_test, y_pred)
             
-            # FIXED: Proper 2x2 confusion matrix
+            # Proper 2x2 confusion matrix with all 4 quadrants
             labels = [['True Negative<br>(Correct On-Time)', 'False Positive<br>(Wrong Delay Pred)'],
                      ['False Negative<br>(Missed Delay)', 'True Positive<br>(Correct Delay)']]
             
@@ -1578,17 +1571,11 @@ elif current_page == "AI Predictor":
         col1, col2 = st.columns(2)
         
         with col1:
-            # DATE INPUT - REQUIRED
-            pred_date = st.date_input(
-                "📅 Travel Date",
-                value=datetime.now() + timedelta(days=7),
-                min_value=datetime.now(),
-                max_value=datetime(2025, 12, 31),
-                key="pred_date"
-            )
-            
+            # Use month and day dropdowns instead of date_input
+            pred_month = st.selectbox("📅 Month", MONTHS, key="pred_month_input")
+            pred_day = st.selectbox("📆 Day of Week", DAYS, key="pred_day_input")
             pred_hour = st.slider("🕐 Departure Hour", 0, 23, 12, key="pred_hour",
-                                 help="Select the scheduled departure time")
+                                 help="Select the scheduled departure time (24-hour format)")
         
         with col2:
             pred_origin = st.selectbox("🛫 Origin Airport", 
@@ -1603,10 +1590,20 @@ elif current_page == "AI Predictor":
         origin_code = pred_origin.split('(')[1].replace(')', '')
         dest_code = pred_dest.split('(')[1].replace(')', '')
         
-        # VALIDATE: Get airlines that actually operate this route
-        route_airlines = df[(df['ORIGIN'] == origin_code) & (df['DEST'] == dest_code)]['AIRLINE_NAME'].unique().tolist()
+        # Same origin/destination check
+        if origin_code == dest_code:
+            st.markdown("""
+            <div class="error-box">
+                <div class="error-title">⚠️ Invalid Route</div>
+                <div class="error-text">Origin and destination cannot be the same airport. Please select different airports.</div>
+            </div>
+            """, unsafe_allow_html=True)
+            route_airlines = []
+        else:
+            # VALIDATE: Get airlines that actually operate this route
+            route_airlines = df[(df['ORIGIN'] == origin_code) & (df['DEST'] == dest_code)]['AIRLINE_NAME'].unique().tolist()
         
-        if len(route_airlines) == 0:
+        if len(route_airlines) == 0 and origin_code != dest_code:
             st.markdown("""
             <div class="error-box">
                 <div class="error-title">⚠️ No Direct Route Available</div>
@@ -1614,77 +1611,114 @@ elif current_page == "AI Predictor":
             </div>
             """, unsafe_allow_html=True)
             pred_airline = None
-        else:
+        elif len(route_airlines) > 0:
             pred_airline = st.selectbox("✈️ Airline (Operating this Route)",
                 sorted(route_airlines), key="pred_airline")
+        else:
+            pred_airline = None
         
-        if pred_airline and st.button("🔮 PREDICT DELAY RISK", use_container_width=True):
-            # Same origin/destination check
-            if origin_code == dest_code:
-                st.markdown("""
-                <div class="error-box">
-                    <div class="error-title">⚠️ Invalid Route</div>
-                    <div class="error-text">Origin and destination cannot be the same airport.</div>
+        if pred_airline and st.button("🔮 PREDICT DELAY RISK", key="predict_btn"):
+            # Calculate features
+            origin_info = airports_df[airports_df['code'] == origin_code].iloc[0]
+            dest_info = airports_df[airports_df['code'] == dest_code].iloc[0]
+            
+            # Calculate distance using Haversine formula
+            lat1, lon1 = np.radians(origin_info['lat']), np.radians(origin_info['lon'])
+            lat2, lon2 = np.radians(dest_info['lat']), np.radians(dest_info['lon'])
+            dlat, dlon = lat2 - lat1, lon2 - lon1
+            a = np.sin(dlat/2)**2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon/2)**2
+            distance = 3956 * 2 * np.arcsin(np.sqrt(a))
+            
+            # Get month and day indices
+            month_idx = MONTHS.index(pred_month) + 1
+            day_idx = DAYS.index(pred_day) + 1
+            
+            # Encode categorical features
+            origin_enc = hash(origin_code) % 1000
+            dest_enc = hash(dest_code) % 1000
+            carrier_enc = hash(pred_airline) % 1000
+            
+            features = [[month_idx, day_idx, pred_hour, distance, origin_enc, dest_enc, carrier_enc]]
+            
+            prediction = model.predict(features)[0]
+            probability = model.predict_proba(features)[0][1]
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            # Show flight details
+            col_d1, col_d2, col_d3 = st.columns(3)
+            with col_d1:
+                st.markdown(f"**📅 {pred_month}, {pred_day}**")
+            with col_d2:
+                st.markdown(f"**🕐 {pred_hour:02d}:00 departure**")
+            with col_d3:
+                st.markdown(f"**📏 {distance:,.0f} miles**")
+            
+            st.markdown(f"**Route:** {pred_origin} → {pred_dest}")
+            st.markdown(f"**Airline:** {pred_airline}")
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            if prediction == 1 or probability > 0.4:
+                st.markdown(f"""
+                <div class="prediction-high">
+                    <div class="prediction-icon">⚠️</div>
+                    <div class="prediction-title" style="color: #FDA4AF;">HIGH DELAY RISK</div>
+                    <div class="prediction-prob" style="color: #F43F5E;">{probability*100:.1f}%</div>
+                    <p style="color: #E2E8F0;">probability of delay (>15 minutes)</p>
+                    <p style="color: #94A3B8; margin-top: 1rem;">Consider booking an earlier flight or allow extra buffer time for connections.</p>
                 </div>
                 """, unsafe_allow_html=True)
             else:
-                # Calculate features
-                origin_info = airports_df[airports_df['code'] == origin_code].iloc[0]
-                dest_info = airports_df[airports_df['code'] == dest_code].iloc[0]
-                
-                lat1, lon1 = np.radians(origin_info['lat']), np.radians(origin_info['lon'])
-                lat2, lon2 = np.radians(dest_info['lat']), np.radians(dest_info['lon'])
-                dlat, dlon = lat2 - lat1, lon2 - lon1
-                a = np.sin(dlat/2)**2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon/2)**2
-                distance = 3956 * 2 * np.arcsin(np.sqrt(a))
-                
-                # Use date for month and day
-                month_idx = pred_date.month
-                day_idx = pred_date.weekday() + 1  # Monday = 1
-                
-                origin_enc = hash(origin_code) % 1000
-                dest_enc = hash(dest_code) % 1000
-                carrier_enc = hash(pred_airline) % 1000
-                
-                features = [[month_idx, day_idx, pred_hour, distance, origin_enc, dest_enc, carrier_enc]]
-                
-                prediction = model.predict(features)[0]
-                probability = model.predict_proba(features)[0][1]
-                
-                st.markdown("<br>", unsafe_allow_html=True)
-                
-                # Show flight details
                 st.markdown(f"""
-                **Flight Details:**
-                - **Date:** {pred_date.strftime('%A, %B %d, %Y')}
-                - **Route:** {pred_origin} → {pred_dest}
-                - **Airline:** {pred_airline}
-                - **Time:** {pred_hour:02d}:00
-                - **Distance:** {distance:,.0f} miles
-                """)
-                
-                st.markdown("<br>", unsafe_allow_html=True)
-                
-                if prediction == 1 or probability > 0.4:
-                    st.markdown(f"""
-                    <div class="prediction-high">
-                        <div class="prediction-icon">⚠️</div>
-                        <div class="prediction-title" style="color: #FDA4AF;">HIGH DELAY RISK</div>
-                        <div class="prediction-prob" style="color: #F43F5E;">{probability*100:.1f}%</div>
-                        <p style="color: #E2E8F0;">probability of delay (>15 minutes)</p>
-                        <p style="color: #94A3B8; margin-top: 1rem;">Consider booking an earlier flight or allow extra buffer time for connections.</p>
-                    </div>
-                    """, unsafe_allow_html=True)
+                <div class="prediction-low">
+                    <div class="prediction-icon">✅</div>
+                    <div class="prediction-title" style="color: #6EE7B7;">LOW DELAY RISK</div>
+                    <div class="prediction-prob" style="color: #10B981;">{(1-probability)*100:.1f}%</div>
+                    <p style="color: #E2E8F0;">probability of on-time departure</p>
+                    <p style="color: #94A3B8; margin-top: 1rem;">This flight has favorable on-time performance indicators.</p>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            # Risk factors
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown("### 📋 Risk Factors Analysis")
+            
+            risk_col1, risk_col2 = st.columns(2)
+            
+            with risk_col1:
+                # Time-based risk
+                if pred_hour >= 17:
+                    st.markdown("⚠️ **Evening departure** - Higher risk due to accumulated delays")
+                elif pred_hour <= 7:
+                    st.markdown("✅ **Morning departure** - Lower risk, aircraft starts fresh")
                 else:
-                    st.markdown(f"""
-                    <div class="prediction-low">
-                        <div class="prediction-icon">✅</div>
-                        <div class="prediction-title" style="color: #6EE7B7;">LOW DELAY RISK</div>
-                        <div class="prediction-prob" style="color: #10B981;">{(1-probability)*100:.1f}%</div>
-                        <p style="color: #E2E8F0;">probability of on-time departure</p>
-                        <p style="color: #94A3B8; margin-top: 1rem;">This flight has favorable on-time performance indicators.</p>
-                    </div>
-                    """, unsafe_allow_html=True)
+                    st.markdown("ℹ️ **Mid-day departure** - Moderate delay risk")
+                
+                # Day-based risk
+                if pred_day in ['Friday', 'Sunday']:
+                    st.markdown("⚠️ **Weekend travel day** - Higher passenger volumes")
+                elif pred_day == 'Tuesday':
+                    st.markdown("✅ **Tuesday** - Typically lowest delay rates")
+                else:
+                    st.markdown("ℹ️ **Standard weekday** - Average delay patterns")
+            
+            with risk_col2:
+                # Season-based risk
+                if month_idx in [6, 7, 8]:
+                    st.markdown("⚠️ **Summer season** - Thunderstorm risk (varies by region)")
+                elif month_idx in [12, 1, 2]:
+                    st.markdown("⚠️ **Winter season** - Weather disruption risk")
+                else:
+                    st.markdown("✅ **Moderate season** - Lower weather-related delays")
+                
+                # Distance-based risk
+                if distance > 2000:
+                    st.markdown("ℹ️ **Long-haul flight** - More variables, but often better buffer")
+                elif distance < 500:
+                    st.markdown("✅ **Short-haul flight** - Quick turnaround possible")
+                else:
+                    st.markdown("ℹ️ **Medium-haul flight** - Standard delay patterns")
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # PAGE: SIMULATOR
@@ -1876,7 +1910,7 @@ elif current_page == "Regional":
         st.markdown("### Gulf Carriers Performance")
         st.markdown('<div class="chart-explainer">Performance comparison of Gulf-based carriers only (Emirates, Qatar Airways, Etihad, etc.). These premium carriers typically maintain industry-leading on-time performance.</div>', unsafe_allow_html=True)
         
-        # FIXED: Filter to only ACTUAL Gulf carriers
+        # Filter to only ACTUAL Gulf carriers
         gulf_airlines_df = me_df[me_df['AIRLINE_NAME'].isin(GULF_CARRIERS)].groupby('AIRLINE_NAME')['DEP_DEL15'].agg(['count', 'mean']).reset_index()
         gulf_airlines_df.columns = ['Airline', 'Flights', 'Delay Rate']
         gulf_airlines_df = gulf_airlines_df[gulf_airlines_df['Flights'] >= 10].sort_values('Delay Rate')
