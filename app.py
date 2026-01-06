@@ -112,7 +112,7 @@ st.markdown("""
         font-weight: 600;
     }
     
-    /* ═══════════════ NAVIGATION BUTTONS ═══════════════ */
+/* ═══════════════ NAVIGATION BUTTONS ═══════════════ */
 .stButton > button {
     background: linear-gradient(145deg, rgba(26, 26, 46, 0.9) 0%, rgba(15, 15, 26, 0.95) 100%) !important;
     border: 1px solid rgba(139, 92, 246, 0.3) !important;
@@ -124,26 +124,39 @@ st.markdown("""
     transition: all 0.3s ease !important;
     white-space: nowrap !important;
     min-height: 44px !important;
-    text-align: center !important;
+    width: 100% !important;
+}
+
+.stButton > button > div {
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
+    width: 100% !important;
 }
-    
-    .stButton > button:hover {
-        background: linear-gradient(145deg, rgba(139, 92, 246, 0.2) 0%, rgba(99, 102, 241, 0.15) 100%) !important;
-        border-color: rgba(139, 92, 246, 0.6) !important;
-        transform: translateY(-2px) !important;
-        box-shadow: 0 8px 25px rgba(139, 92, 246, 0.2) !important;
-        color: #FFFFFF !important;
-    }
-    
-    .stButton > button:focus, .stButton > button:active {
-        background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%) !important;
-        border-color: transparent !important;
-        color: #FFFFFF !important;
-        box-shadow: 0 0 20px rgba(139, 92, 246, 0.4) !important;
-    }
+
+.stButton > button p,
+.stButton > button span,
+.stButton > button div {
+    text-align: center !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.stButton > button:hover {
+    background: linear-gradient(145deg, rgba(139, 92, 246, 0.2) 0%, rgba(99, 102, 241, 0.15) 100%) !important;
+    border-color: rgba(139, 92, 246, 0.6) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(139, 92, 246, 0.2) !important;
+    color: #FFFFFF !important;
+}
+
+.stButton > button:focus, .stButton > button:active {
+    background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%) !important;
+    border-color: transparent !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.4) !important;
+}
     
     /* ═══════════════ HERO SECTION ═══════════════ */
     .hero-section {
