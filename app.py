@@ -113,18 +113,22 @@ st.markdown("""
     }
     
     /* ═══════════════ NAVIGATION BUTTONS ═══════════════ */
-    .stButton > button {
-        background: linear-gradient(145deg, rgba(26, 26, 46, 0.9) 0%, rgba(15, 15, 26, 0.95) 100%) !important;
-        border: 1px solid rgba(139, 92, 246, 0.3) !important;
-        border-radius: 12px !important;
-        color: #E2E8F0 !important;
-        font-weight: 500 !important;
-        font-size: 0.85rem !important;
-        padding: 0.6rem 1.2rem !important;
-        transition: all 0.3s ease !important;
-        white-space: nowrap !important;
-        min-height: 44px !important;
-    }
+.stButton > button {
+    background: linear-gradient(145deg, rgba(26, 26, 46, 0.9) 0%, rgba(15, 15, 26, 0.95) 100%) !important;
+    border: 1px solid rgba(139, 92, 246, 0.3) !important;
+    border-radius: 12px !important;
+    color: #E2E8F0 !important;
+    font-weight: 500 !important;
+    font-size: 0.85rem !important;
+    padding: 0.6rem 1.2rem !important;
+    transition: all 0.3s ease !important;
+    white-space: nowrap !important;
+    min-height: 44px !important;
+    text-align: center !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
     
     .stButton > button:hover {
         background: linear-gradient(145deg, rgba(139, 92, 246, 0.2) 0%, rgba(99, 102, 241, 0.15) 100%) !important;
