@@ -1,6 +1,6 @@
 # ═══════════════════════════════════════════════════════════════════════════════
 # ✈️ FLIGHT DELAY DOMINO EFFECT - EXECUTIVE DASHBOARD
-# Final Production Version - All Issues Fixed + Waterfall Chart
+# Final Production Version - Animated Map + All Fixes
 # ═══════════════════════════════════════════════════════════════════════════════
 
 import streamlit as st
@@ -380,27 +380,6 @@ st.markdown("""
     .prediction-icon { font-size: 3.5rem; margin-bottom: 0.8rem; }
     .prediction-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.3rem; }
     .prediction-prob { font-size: 2.5rem; font-weight: 800; }
-    
-    /* ═══════════════ ERROR MESSAGE ═══════════════ */
-    .error-box {
-        background: linear-gradient(145deg, rgba(244, 63, 94, 0.15) 0%, rgba(239, 68, 68, 0.1) 100%);
-        border: 1px solid rgba(244, 63, 94, 0.4);
-        border-radius: 12px;
-        padding: 1.2rem;
-        margin: 1rem 0;
-    }
-    
-    .error-title {
-        color: #FB7185;
-        font-weight: 700;
-        font-size: 1rem;
-        margin-bottom: 0.5rem;
-    }
-    
-    .error-text {
-        color: #FDA4AF;
-        font-size: 0.9rem;
-    }
     
     /* ═══════════════ METRICS ═══════════════ */
     [data-testid="stMetricValue"] {
@@ -986,7 +965,7 @@ elif current_page == "Analytics":
         st.plotly_chart(fig, use_container_width=True, key="season_heatmap")
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# PAGE: DOMINO EFFECT
+# PAGE: DOMINO EFFECT (WITH ANIMATED MAP)
 # ═══════════════════════════════════════════════════════════════════════════════
 elif current_page == "Domino Effect":
     
@@ -1008,6 +987,158 @@ elif current_page == "Domino Effect":
     </div>
     """, unsafe_allow_html=True)
     
+    # ═══════════════════════════════════════════════════════════════════════════
+    # ANIMATED GLOBAL MAP - Delays Throughout the Day
+    # ═══════════════════════════════════════════════════════════════════════════
+    st.markdown("### 🌍 Watch Delays Cascade Across the Globe")
+    st.markdown('<div class="chart-explainer">This animated map shows how delays intensify throughout the day. Press play to watch airports turn from green (low delays) to red (high delays) as the domino effect takes hold. Bubble size represents flight volume.</div>', unsafe_allow_html=True)
+    
+    # Prepare data for animated map
+    @st.cache_data
+    def prepare_animated_map_data():
+        # Get hourly stats per airport
+        hourly_airport = df.groupby(['ORIGIN', 'DEP_HOUR']).agg({
+            'DEP_DEL15': ['count', 'mean']
+        }).reset_index()
+        hourly_airport.columns = ['Airport', 'Hour', 'Flights', 'Delay_Rate']
+        
+        # Merge with airport coordinates
+        hourly_airport = hourly_airport.merge(
+            airports_df[['code', 'city', 'lat', 'lon', 'region']], 
+            left_on='Airport', 
+            right_on='code',
+            how='left'
+        )
+        
+        # Format hour for display
+        hourly_airport['Hour_Display'] = hourly_airport['Hour'].apply(lambda x: f"{x:02d}:00")
+        hourly_airport['Delay_Pct'] = hourly_airport['Delay_Rate'] * 100
+        
+        # Create hover text
+        hourly_airport['hover_text'] = hourly_airport.apply(
+            lambda r: f"<b>{r['city']} ({r['Airport']})</b><br>" +
+                      f"Region: {r['region']}<br>" +
+                      f"Flights: {r['Flights']:,}<br>" +
+                      f"Delay Rate: {r['Delay_Pct']:.1f}%",
+            axis=1
+        )
+        
+        return hourly_airport
+    
+    map_data = prepare_animated_map_data()
+    
+    # Create animated scatter_geo
+    fig = px.scatter_geo(
+        map_data,
+        lat='lat',
+        lon='lon',
+        size='Flights',
+        color='Delay_Pct',
+        hover_name='city',
+        hover_data={
+            'lat': False,
+            'lon': False,
+            'Flights': True,
+            'Delay_Pct': ':.1f',
+            'region': True,
+            'Hour': False,
+            'Hour_Display': False
+        },
+        animation_frame='Hour_Display',
+        color_continuous_scale=[
+            [0, '#10B981'],      # Green - low delays
+            [0.3, '#84CC16'],    # Lime
+            [0.5, '#F59E0B'],    # Amber - medium delays
+            [0.7, '#F97316'],    # Orange
+            [1, '#EF4444']       # Red - high delays
+        ],
+        range_color=[15, 45],
+        size_max=25,
+        projection='natural earth',
+        title=''
+    )
+    
+    # Update layout for dark theme
+    fig.update_layout(
+        height=550,
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font=dict(color=COLORS['text'], size=12),
+        margin=dict(l=0, r=0, t=30, b=0),
+        geo=dict(
+            bgcolor='rgba(0,0,0,0)',
+            landcolor='#1A1A2E',
+            oceancolor='#0F0F1A',
+            lakecolor='#0F0F1A',
+            coastlinecolor='#3B3B5C',
+            countrycolor='#3B3B5C',
+            showocean=True,
+            showlakes=True,
+            showland=True,
+            showcountries=True,
+            showcoastlines=True,
+            framecolor='#3B3B5C',
+            framewidth=1,
+        ),
+        coloraxis_colorbar=dict(
+            title="Delay %",
+            ticksuffix="%",
+            len=0.6,
+            thickness=15,
+            bgcolor='rgba(26, 26, 46, 0.8)',
+            bordercolor='rgba(139, 92, 246, 0.3)',
+            borderwidth=1
+        ),
+        hoverlabel=dict(bgcolor='#1A1A2E', font_size=12, bordercolor=COLORS['purple']),
+        updatemenus=[dict(
+            type='buttons',
+            showactive=False,
+            y=0,
+            x=0.1,
+            xanchor='right',
+            yanchor='top',
+            buttons=[
+                dict(label='▶️ Play',
+                     method='animate',
+                     args=[None, dict(frame=dict(duration=800, redraw=True), fromcurrent=True)]),
+                dict(label='⏸️ Pause',
+                     method='animate',
+                     args=[[None], dict(frame=dict(duration=0, redraw=False), mode='immediate')])
+            ],
+            bgcolor='rgba(139, 92, 246, 0.3)',
+            bordercolor='rgba(139, 92, 246, 0.5)',
+            font=dict(color='white')
+        )],
+        sliders=[dict(
+            currentvalue=dict(prefix="Hour: ", font=dict(color='white', size=14)),
+            font=dict(color='white'),
+            bgcolor='rgba(139, 92, 246, 0.2)',
+            bordercolor='rgba(139, 92, 246, 0.3)',
+            tickcolor='white',
+            len=0.8,
+            x=0.1,
+            y=0,
+        )]
+    )
+    
+    st.plotly_chart(fig, use_container_width=True, key="animated_map")
+    
+    # Map insight
+    morning_rate = df[df['DEP_HOUR'].between(5, 9)]['DEP_DEL15'].mean() * 100
+    evening_rate = df[df['DEP_HOUR'].between(17, 21)]['DEP_DEL15'].mean() * 100
+    
+    st.markdown(f"""
+    <div class="insight-box warning">
+        <div class="insight-title">⚠️ Animated Map Insight</div>
+        <div class="insight-text">
+            Watch how airports transition from <span class="insight-stat">green</span> (morning: {morning_rate:.1f}% delays) 
+            to <span class="insight-stat">red</span> (evening: {evening_rate:.1f}% delays) — a 
+            <span class="insight-stat">{evening_rate - morning_rate:.1f}%</span> increase due to cumulative cascading delays.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Rest of Domino Effect page
     delayed = fdf[fdf['DEP_DEL15'] == 1]
     
     col1, col2 = st.columns([1.2, 1])
@@ -1085,11 +1216,12 @@ elif current_page == "Domino Effect":
     late_pct = cause_df[cause_df['Cause'] == 'Late Aircraft (Domino)']['Percentage'].values[0]
     
     st.markdown(f"""
-    <div class="insight-box warning">
-        <div class="insight-title">⚠️ Critical Domino Effect Finding</div>
+    <div class="insight-box danger">
+        <div class="insight-title">🚨 Critical Domino Effect Finding</div>
         <div class="insight-text">
             <span class="insight-stat">{late_pct:.1f}%</span> of all delay minutes are caused by 
-            <b>Late Aircraft</b> — the domino effect in action.
+            <b>Late Aircraft</b> — the domino effect in action. This single factor is the largest 
+            contributor to cascading delays across the global aviation network.
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -1217,16 +1349,16 @@ elif current_page == "Economics":
     
     delayed = fdf[fdf['DEP_DEL15'] == 1]
     
-    # Calculate cost by delay cause (using delay minutes * average cost per minute)
+    # Calculate cost by delay cause
     cost_per_min = 121.20  # $74.20 airline + $47.00 passenger
     
-    carrier_cost = delayed['CARRIER_DELAY'].sum() * cost_per_min
-    weather_cost = delayed['WEATHER_DELAY'].sum() * cost_per_min
-    nas_cost = delayed['NAS_DELAY'].sum() * cost_per_min
-    late_aircraft_cost = delayed['LATE_AIRCRAFT_DELAY'].sum() * cost_per_min
-    security_cost = delayed['SECURITY_DELAY'].sum() * cost_per_min
+    carrier_cost_wf = delayed['CARRIER_DELAY'].sum() * cost_per_min
+    weather_cost_wf = delayed['WEATHER_DELAY'].sum() * cost_per_min
+    nas_cost_wf = delayed['NAS_DELAY'].sum() * cost_per_min
+    late_aircraft_cost_wf = delayed['LATE_AIRCRAFT_DELAY'].sum() * cost_per_min
+    security_cost_wf = delayed['SECURITY_DELAY'].sum() * cost_per_min
     
-    waterfall_total = carrier_cost + weather_cost + nas_cost + late_aircraft_cost + security_cost
+    waterfall_total = carrier_cost_wf + weather_cost_wf + nas_cost_wf + late_aircraft_cost_wf + security_cost_wf
     
     # Create waterfall chart
     fig = go.Figure(go.Waterfall(
@@ -1234,10 +1366,10 @@ elif current_page == "Economics":
         orientation="v",
         measure=["relative", "relative", "relative", "relative", "relative", "total"],
         x=["Carrier<br>Operations", "Weather", "Air Traffic<br>Control", "Late Aircraft<br>(Domino)", "Security", "Total<br>Impact"],
-        y=[carrier_cost, weather_cost, nas_cost, late_aircraft_cost, security_cost, 0],
+        y=[carrier_cost_wf, weather_cost_wf, nas_cost_wf, late_aircraft_cost_wf, security_cost_wf, 0],
         textposition="outside",
-        text=[format_currency(carrier_cost), format_currency(weather_cost), format_currency(nas_cost), 
-              format_currency(late_aircraft_cost), format_currency(security_cost), format_currency(waterfall_total)],
+        text=[format_currency(carrier_cost_wf), format_currency(weather_cost_wf), format_currency(nas_cost_wf), 
+              format_currency(late_aircraft_cost_wf), format_currency(security_cost_wf), format_currency(waterfall_total)],
         textfont=dict(size=11, color=COLORS['text']),
         connector={"line": {"color": COLORS['purple'], "width": 2, "dash": "dot"}},
         increasing={"marker": {"color": COLORS['rose']}},
@@ -1261,15 +1393,14 @@ elif current_page == "Economics":
     st.plotly_chart(fig, use_container_width=True, key="waterfall_cost")
     
     # Insight about waterfall
-    domino_pct = (late_aircraft_cost / waterfall_total) * 100
+    domino_pct = (late_aircraft_cost_wf / waterfall_total) * 100 if waterfall_total > 0 else 0
     st.markdown(f"""
     <div class="insight-box warning">
         <div class="insight-title">⚠️ Waterfall Analysis Insight</div>
         <div class="insight-text">
-            The <b>Late Aircraft (Domino Effect)</b> accounts for <span class="insight-stat">{format_currency(late_aircraft_cost)}</span> 
+            The <b>Late Aircraft (Domino Effect)</b> accounts for <span class="insight-stat">{format_currency(late_aircraft_cost_wf)}</span> 
             (<span class="insight-stat">{domino_pct:.1f}%</span>) of total delay costs. 
-            This single factor, caused by cascading delays, represents the largest opportunity for cost reduction through 
-            strategic schedule buffering and spare aircraft positioning.
+            This represents the largest opportunity for cost reduction through strategic schedule buffering.
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -1400,7 +1531,7 @@ elif current_page == "Economics":
     st.plotly_chart(fig, use_container_width=True, key="pareto")
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# PAGE: AI PREDICTOR (FIXED - No date_input)
+# PAGE: AI PREDICTOR (FIXED - No Route Validation)
 # ═══════════════════════════════════════════════════════════════════════════════
 elif current_page == "AI Predictor":
     
@@ -1565,9 +1696,12 @@ elif current_page == "AI Predictor":
         
         st.plotly_chart(fig, use_container_width=True, key="importance")
     
+    # ═══════════════════════════════════════════════════════════════════════════
+    # TAB 2: PREDICT YOUR FLIGHT (FIXED - No Route Validation)
+    # ═══════════════════════════════════════════════════════════════════════════
     with tab2:
         st.markdown("### Predict Delay Risk for Your Flight")
-        st.markdown('<div class="chart-explainer">Enter your flight details below. The model validates that the airline operates on your selected route and provides a delay probability assessment.</div>', unsafe_allow_html=True)
+        st.markdown('<div class="chart-explainer">Enter your flight details below. The AI model uses patterns learned from historical data to predict delay probability for any route and airline combination.</div>', unsafe_allow_html=True)
         
         col1, col2 = st.columns(2)
         
@@ -1577,40 +1711,30 @@ elif current_page == "AI Predictor":
             pred_hour = st.slider("🕐 Departure Hour (24h)", 0, 23, 14, key="pred_hour")
         
         with col2:
+            # All airports available
             airport_list = [f"{row['city']} ({row['code']})" for _, row in airports_df.iterrows()]
             pred_origin = st.selectbox("🛫 Origin Airport", airport_list, index=0, key="pred_origin")
             pred_dest = st.selectbox("🛬 Destination Airport", airport_list, index=min(1, len(airport_list)-1), key="pred_dest")
         
+        # All airlines available
+        all_airlines = sorted(df['AIRLINE_NAME'].unique().tolist())
+        pred_airline = st.selectbox("✈️ Select Airline", all_airlines, key="pred_airline")
+        
+        # Extract codes
         origin_code = pred_origin.split('(')[1].replace(')', '')
         dest_code = pred_dest.split('(')[1].replace(')', '')
         
-        valid_route = True
-        pred_airline = None
-        
+        # Only check if same airport selected
         if origin_code == dest_code:
             st.markdown("""
-            <div class="error-box">
-                <div class="error-title">⚠️ Invalid Route</div>
-                <div class="error-text">Origin and destination cannot be the same airport.</div>
+            <div class="insight-box warning">
+                <div class="insight-title">⚠️ Same Airport Selected</div>
+                <div class="insight-text">Origin and destination cannot be the same. Please select different airports.</div>
             </div>
             """, unsafe_allow_html=True)
-            valid_route = False
         else:
-            route_airlines = df[(df['ORIGIN'] == origin_code) & (df['DEST'] == dest_code)]['AIRLINE_NAME'].unique().tolist()
-            
-            if len(route_airlines) == 0:
-                st.markdown("""
-                <div class="error-box">
-                    <div class="error-title">⚠️ No Direct Route</div>
-                    <div class="error-text">No airlines operate direct flights on this route in our database. Try different airports.</div>
-                </div>
-                """, unsafe_allow_html=True)
-                valid_route = False
-            else:
-                pred_airline = st.selectbox("✈️ Select Airline", sorted(route_airlines), key="pred_airline")
-        
-        if valid_route and pred_airline:
             if st.button("🔮 PREDICT DELAY RISK", use_container_width=True, key="predict_btn"):
+                # Calculate distance using Haversine formula
                 origin_info = airports_df[airports_df['code'] == origin_code].iloc[0]
                 dest_info = airports_df[airports_df['code'] == dest_code].iloc[0]
                 
@@ -1620,6 +1744,7 @@ elif current_page == "AI Predictor":
                 a = np.sin(dlat/2)**2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon/2)**2
                 distance = 3956 * 2 * np.arcsin(np.sqrt(a))
                 
+                # Encode features
                 month_idx = MONTHS.index(pred_month) + 1
                 day_idx = DAYS.index(pred_day) + 1
                 origin_enc = hash(origin_code) % 1000
@@ -1628,20 +1753,24 @@ elif current_page == "AI Predictor":
                 
                 features = [[month_idx, day_idx, pred_hour, distance, origin_enc, dest_enc, carrier_enc]]
                 
+                # Predict
                 prediction = model.predict(features)[0]
                 probability = model.predict_proba(features)[0][1]
                 
                 st.markdown("---")
                 
+                # Flight details summary
                 fc1, fc2, fc3 = st.columns(3)
                 fc1.markdown(f"**📅 {pred_month}, {pred_day}**")
                 fc2.markdown(f"**🕐 {pred_hour:02d}:00 departure**")
                 fc3.markdown(f"**📏 {distance:,.0f} miles**")
                 
-                st.markdown(f"**Route:** {pred_origin} → {pred_dest} | **Airline:** {pred_airline}")
+                st.markdown(f"**Route:** {pred_origin} → {pred_dest}")
+                st.markdown(f"**Airline:** {pred_airline}")
                 
                 st.markdown("<br>", unsafe_allow_html=True)
                 
+                # Display prediction result
                 if prediction == 1 or probability > 0.4:
                     st.markdown(f"""
                     <div class="prediction-high">
@@ -1651,6 +1780,18 @@ elif current_page == "AI Predictor":
                         <p style="color: #E2E8F0;">probability of delay (>15 minutes)</p>
                     </div>
                     """, unsafe_allow_html=True)
+                    
+                    st.markdown("""
+                    <div class="insight-box warning">
+                        <div class="insight-title">💡 Recommendations</div>
+                        <div class="insight-text">
+                            • Consider booking an earlier departure time<br>
+                            • Allow extra time for connections<br>
+                            • Check weather forecasts closer to departure<br>
+                            • Sign up for flight status alerts
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
                 else:
                     st.markdown(f"""
                     <div class="prediction-low">
@@ -1658,6 +1799,16 @@ elif current_page == "AI Predictor":
                         <div class="prediction-title" style="color: #6EE7B7;">LOW DELAY RISK</div>
                         <div class="prediction-prob" style="color: #10B981;">{(1-probability)*100:.1f}%</div>
                         <p style="color: #E2E8F0;">probability of on-time departure</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    st.markdown("""
+                    <div class="insight-box success">
+                        <div class="insight-title">✅ Good Choice!</div>
+                        <div class="insight-text">
+                            This flight has favorable conditions for on-time departure. 
+                            Still recommended to arrive at the airport with standard buffer time.
+                        </div>
                     </div>
                     """, unsafe_allow_html=True)
 
@@ -1799,7 +1950,7 @@ elif current_page == "Regional":
             <div class="insight-title">🌧️ India Aviation Insight</div>
             <div class="insight-text">
                 Monsoon season (Jun-Sep) causes <span class="insight-stat">40-60%</span> higher delays.
-                Mumbai (BOM) and Delhi (DEL) are most affected.
+                Mumbai (BOM) and Delhi (DEL) are most affected due to heavy rainfall and visibility issues.
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -1843,6 +1994,17 @@ elif current_page == "Regional":
             st.plotly_chart(fig, use_container_width=True, key="gulf_airlines")
         else:
             st.info("No Gulf carrier data available with the current filters.")
+        
+        st.markdown("""
+        <div class="insight-box success">
+            <div class="insight-title">✅ Middle East Aviation Excellence</div>
+            <div class="insight-text">
+                Gulf carriers consistently rank among the world's most punctual airlines, 
+                with hub airports like Dubai (DXB) and Doha (DOH) featuring state-of-the-art facilities 
+                and minimal weather disruptions.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
     
     with tab3:
         na_df = df[df['ORIGIN_REGION'] == 'North America']
@@ -1878,6 +2040,16 @@ elif current_page == "Regional":
         )
         
         st.plotly_chart(fig, use_container_width=True, key="na_monthly")
+        
+        st.markdown("""
+        <div class="insight-box danger">
+            <div class="insight-title">❄️ North America Winter Challenges</div>
+            <div class="insight-text">
+                Winter months (Dec-Feb) see significant delay spikes due to snow, ice, and deicing requirements.
+                Summer thunderstorms (Jun-Aug) also cause notable disruptions, particularly in the Midwest and East Coast.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # PAGE: SUMMARY
@@ -1932,8 +2104,9 @@ elif current_page == "Summary":
     <div class="insight-box">
         <div class="insight-title">🌊 Finding 1: The Domino Effect is Quantifiable</div>
         <div class="insight-text">
-            Late aircraft delays compound throughout the day. Evening flights are significantly more likely 
-            to be delayed than morning flights. Airlines can break this cascade through strategic schedule buffering.
+            Late aircraft delays compound throughout the day, as visualized in the animated global map. 
+            Evening flights are significantly more likely to be delayed than morning flights. 
+            Airlines can break this cascade through strategic schedule buffering and spare aircraft positioning.
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -1953,7 +2126,7 @@ elif current_page == "Summary":
         <div class="insight-title">📈 Finding 3: Pareto Principle Applies to Aviation Delays</div>
         <div class="insight-text">
             A small number of airlines and airports contribute disproportionately to overall delay minutes. 
-            Targeted improvements at these bottlenecks would yield maximum ROI.
+            Targeted improvements at these bottlenecks would yield maximum ROI, as shown in the waterfall analysis.
         </div>
     </div>
     """, unsafe_allow_html=True)
