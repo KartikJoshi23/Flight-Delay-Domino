@@ -534,8 +534,9 @@ pages = ["Overview", "Analytics", "Domino Effect", "Economics", "AI Predictor", 
 nav_cols = st.columns(8)
 for i, page in enumerate(pages):
     with nav_cols[i]:
-        if st.button(page, key=f"nav_{page}", use_container_width=True):
-            st.session_state.current_page = page
+        clean_page = page.strip()
+        if st.button(clean_page, key=f"nav_{clean_page}", use_container_width=True):
+            st.session_state.current_page = clean_page
             st.rerun()
 
 current_page = st.session_state.current_page
