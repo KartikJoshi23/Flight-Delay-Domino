@@ -529,8 +529,7 @@ st.markdown("""
 if 'current_page' not in st.session_state:
     st.session_state.current_page = "Overview"
 
-pages = ["Overview", "Analytics", "Domino Effect", "Economics", 
-         "AI Predictor", "Simulator", "Regional", "Summary"]
+pages = ["Overview", "Analytics", "Domino Effect", "Economics", "AI Predictor", "Simulator", "Regional", "Summary"]
 
 nav_cols = st.columns(8)
 for i, page in enumerate(pages):
