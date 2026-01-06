@@ -1,0 +1,49 @@
+code,name,city,country,region,lat,lon
+ATL,Hartsfield-Jackson Atlanta,Atlanta,USA,North America,33.6407,-84.4277
+DFW,Dallas/Fort Worth International,Dallas,USA,North America,32.8998,-97.0403
+DEN,Denver International,Denver,USA,North America,39.8561,-104.6737
+ORD,Chicago O'Hare International,Chicago,USA,North America,41.9742,-87.9073
+LAX,Los Angeles International,Los Angeles,USA,North America,33.9425,-118.4081
+JFK,John F Kennedy International,New York,USA,North America,40.6413,-73.7781
+SFO,San Francisco International,San Francisco,USA,North America,37.6213,-122.379
+MIA,Miami International,Miami,USA,North America,25.7959,-80.287
+SEA,Seattle-Tacoma International,Seattle,USA,North America,47.4502,-122.3088
+YYZ,Toronto Pearson International,Toronto,Canada,North America,43.6777,-79.6248
+LHR,London Heathrow,London,UK,Europe,51.47,-0.4543
+CDG,Paris Charles de Gaulle,Paris,France,Europe,49.0097,2.5479
+FRA,Frankfurt Airport,Frankfurt,Germany,Europe,50.0379,8.5622
+AMS,Amsterdam Schiphol,Amsterdam,Netherlands,Europe,52.3105,4.7683
+MAD,Madrid Barajas,Madrid,Spain,Europe,40.4983,-3.5676
+FCO,Rome Fiumicino,Rome,Italy,Europe,41.8003,12.2389
+IST,Istanbul Airport,Istanbul,Turkey,Europe,41.2753,28.7519
+MUC,Munich Airport,Munich,Germany,Europe,48.3537,11.775
+BCN,Barcelona El Prat,Barcelona,Spain,Europe,41.2974,2.0833
+LGW,London Gatwick,London,UK,Europe,51.1537,-0.1821
+DXB,Dubai International,Dubai,UAE,Middle East,25.2532,55.3657
+DOH,Hamad International,Doha,Qatar,Middle East,25.2731,51.6081
+AUH,Abu Dhabi International,Abu Dhabi,UAE,Middle East,24.433,54.6511
+JED,King Abdulaziz International,Jeddah,Saudi Arabia,Middle East,21.6796,39.1565
+RUH,King Khalid International,Riyadh,Saudi Arabia,Middle East,24.9578,46.6989
+BAH,Bahrain International,Manama,Bahrain,Middle East,26.2708,50.6336
+KWI,Kuwait International,Kuwait City,Kuwait,Middle East,29.2266,47.9689
+MCT,Muscat International,Muscat,Oman,Middle East,23.5933,58.2844
+HND,Tokyo Haneda,Tokyo,Japan,Asia,35.5494,139.7798
+PEK,Beijing Capital International,Beijing,China,Asia,40.0799,116.6031
+PVG,Shanghai Pudong International,Shanghai,China,Asia,31.1443,121.8083
+SIN,Singapore Changi,Singapore,Singapore,Asia,1.3644,103.9915
+HKG,Hong Kong International,Hong Kong,Hong Kong,Asia,22.308,113.9185
+ICN,Incheon International,Seoul,South Korea,Asia,37.4602,126.4407
+BKK,Suvarnabhumi Airport,Bangkok,Thailand,Asia,13.69,100.7501
+KUL,Kuala Lumpur International,Kuala Lumpur,Malaysia,Asia,2.7456,101.7099
+DEL,Indira Gandhi International,Delhi,India,India,28.5562,77.1
+BOM,Chhatrapati Shivaji International,Mumbai,India,India,19.0896,72.8656
+BLR,Kempegowda International,Bangalore,India,India,13.1986,77.7066
+MAA,Chennai International,Chennai,India,India,12.9941,80.1709
+HYD,Rajiv Gandhi International,Hyderabad,India,India,17.2403,78.4294
+CCU,Netaji Subhas Chandra Bose International,Kolkata,India,India,22.652,88.4463
+COK,Cochin International,Kochi,India,India,10.152,76.4019
+AMD,Sardar Vallabhbhai Patel International,Ahmedabad,India,India,23.0772,72.6347
+SYD,Sydney Kingsford Smith,Sydney,Australia,Oceania,-33.9399,151.1753
+MEL,Melbourne Airport,Melbourne,Australia,Oceania,-37.669,144.841
+JNB,O.R. Tambo International,Johannesburg,South Africa,Africa,-26.1392,28.246
+CAI,Cairo International,Cairo,Egypt,Africa,30.1219,31.4056

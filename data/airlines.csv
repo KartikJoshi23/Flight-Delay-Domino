@@ -1,0 +1,31 @@
+code,name,country,region,type
+AA,American Airlines,USA,North America,Full Service
+DL,Delta Air Lines,USA,North America,Full Service
+UA,United Airlines,USA,North America,Full Service
+WN,Southwest Airlines,USA,North America,Low Cost
+AC,Air Canada,Canada,North America,Full Service
+BA,British Airways,UK,Europe,Full Service
+LH,Lufthansa,Germany,Europe,Full Service
+AF,Air France,France,Europe,Full Service
+KL,KLM Royal Dutch,Netherlands,Europe,Full Service
+TK,Turkish Airlines,Turkey,Europe,Full Service
+FR,Ryanair,Ireland,Europe,Low Cost
+U2,EasyJet,UK,Europe,Low Cost
+EK,Emirates,UAE,Middle East,Full Service
+QR,Qatar Airways,Qatar,Middle East,Full Service
+EY,Etihad Airways,UAE,Middle East,Full Service
+SV,Saudia,Saudi Arabia,Middle East,Full Service
+FZ,FlyDubai,UAE,Middle East,Low Cost
+GF,Gulf Air,Bahrain,Middle East,Full Service
+SQ,Singapore Airlines,Singapore,Asia,Full Service
+CX,Cathay Pacific,Hong Kong,Asia,Full Service
+NH,All Nippon Airways,Japan,Asia,Full Service
+JL,Japan Airlines,Japan,Asia,Full Service
+CZ,China Southern,China,Asia,Full Service
+MH,Malaysia Airlines,Malaysia,Asia,Full Service
+TG,Thai Airways,Thailand,Asia,Full Service
+6E,IndiGo,India,India,Low Cost
+AI,Air India,India,India,Full Service
+SG,SpiceJet,India,India,Low Cost
+UK,Vistara,India,India,Full Service
+QF,Qantas,Australia,Oceania,Full Service
